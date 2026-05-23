@@ -2,7 +2,11 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+
+// ✅ Solo carga .env en local, no en Railway
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 // ✅ Validar variables críticas al arrancar
 if (!process.env.JWT_SECRET) {
