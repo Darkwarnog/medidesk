@@ -9,7 +9,7 @@ const API = window.location.origin;
 const PERMISOS = {
   admin:   ['dashboard','citas','estados','usuarios','nuevo-usuario','nueva-cita','eliminar-cita','eliminar-usuario','cambiar-estado'],
   tecnico: ['dashboard','citas','estados','usuarios','nueva-cita','eliminar-cita','cambiar-estado'],
-  usuario: ['dashboard','citas','nueva-cita','cambiar-estado']
+  usuario: ['dashboard','citas','nueva-cita']  // ✅ sin cambiar-estado
 };
 
 function puedePor(accion) {
@@ -178,7 +178,7 @@ function toggleFormulario() {
   if (nEl) nEl.textContent = 'Selecciona de la lista o escribe un nombre nuevo';
 
   cargarPacientes();
-  ajustarCampoPaciente();  // ✅ ajusta el campo según rol
+  ajustarCampoPaciente();
 }
 
 function toggleFormularioUsuario() {
@@ -455,6 +455,7 @@ function obtenerCitas() {
         sel.addEventListener('change', () => cambiarEstado(cita.id, sel.value));
         estadoCelda.appendChild(sel);
       } else {
+        // ✅ Usuario ve badge de solo lectura
         estadoCelda = document.createElement('td');
         estadoCelda.innerHTML = `<span class="badge badge-${cita.estado}"><span class="dot"></span>${cita.estado}</span>`;
       }
@@ -520,11 +521,9 @@ function guardarCita() {
   let paciente_nombre = '';
 
   if (rol === 'usuario') {
-    // ✅ Usuario: usa su propio ID y nombre del localStorage
     paciente_id     = localStorage.getItem('userId')   || '';
     paciente_nombre = localStorage.getItem('userName') || '';
   } else {
-    // ✅ Admin/técnico: usa el buscador
     paciente_id     = (document.getElementById('paciente_id')?.value     || '').trim();
     paciente_nombre = (document.getElementById('paciente_search')?.value || '').trim();
   }
