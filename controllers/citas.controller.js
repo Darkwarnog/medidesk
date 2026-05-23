@@ -1,21 +1,11 @@
 const db = require('../db');
 
-// ══════════════════════════════════════════════════════════════
-//  IMPORTANTE — ejecuta esto UNA VEZ en tu base de datos para
-//  agregar la columna que guarda nombres libres:
-//
-//  ALTER TABLE citas ADD COLUMN paciente_nombre VARCHAR(150) NULL;
-//
-//  Después de eso ya no necesitas ejecutarlo más.
-// ══════════════════════════════════════════════════════════════
-
-
 // ✅ CREAR CITA
 const createCita = (req, res) => {
   try {
     const {
       paciente_id,
-      paciente_nombre, // nombre libre si no viene de la lista
+      paciente_nombre,
       fecha,
       hora,
       motivo,
@@ -24,8 +14,21 @@ const createCita = (req, res) => {
       categoria
     } = req.body;
 
+    const rolUsuario = req.user.rol;
+    const idUsuario  = req.user.id;
+
+    // 🔒 Si es usuario normal, forzar su propio id como paciente_id
+    // ignorando lo que venga del body
+    let finalPacienteId     = paciente_id     || null;
+    let finalPacienteNombre = paciente_nombre || null;
+
+    if (rolUsuario === 'usuario') {
+      finalPacienteId     = idUsuario;
+      finalPacienteNombre = null;
+    }
+
     // Validación: necesita al menos uno de los dos
-    if (!paciente_id && !paciente_nombre) {
+    if (!finalPacienteId && !finalPacienteNombre) {
       return res.status(400).json({ error: 'Se requiere paciente_id o paciente_nombre' });
     }
 
@@ -38,8 +41,8 @@ const createCita = (req, res) => {
     db.query(
       query,
       [
-        paciente_id    || null,
-        paciente_nombre || null,
+        finalPacienteId,
+        finalPacienteNombre,
         fecha,
         hora,
         motivo,
@@ -49,7 +52,7 @@ const createCita = (req, res) => {
       ],
       (err) => {
         if (err) {
-          console.error("ERROR INSERT:", err);
+          console.error('ERROR INSERT:', err.message);
           return res.status(500).json({ error: 'Error en la base de datos' });
         }
         res.status(201).json({ ok: true, mensaje: 'Cita creada correctamente' });
@@ -57,15 +60,13 @@ const createCita = (req, res) => {
     );
 
   } catch (error) {
-    console.error(error);
+    console.error('createCita error:', error.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
 
 
-// ✅ OBTENER CITAS
-// Muestra el nombre del usuario registrado si hay paciente_id,
-// o el nombre libre (paciente_nombre) si fue escrito a mano.
+// ✅ OBTENER CITAS (admin y técnico ven todas)
 const getCitas = (req, res) => {
   try {
     const query = `
@@ -85,14 +86,14 @@ const getCitas = (req, res) => {
 
     db.query(query, (err, results) => {
       if (err) {
-        console.error("ERROR GET:", err);
+        console.error('ERROR GET:', err.message);
         return res.status(500).json({ error: 'Error al obtener citas' });
       }
       res.json({ ok: true, data: results });
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('getCitas error:', error.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
@@ -123,13 +124,13 @@ const updateCita = (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('updateCita error:', error.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
 
 
-// 🔥 CAMBIAR ESTADO
+// ✅ CAMBIAR ESTADO
 const cambiarEstado = (req, res) => {
   try {
     const { id }     = req.params;
@@ -139,14 +140,14 @@ const cambiarEstado = (req, res) => {
 
     db.query('UPDATE citas SET estado = ? WHERE id = ?', [estado, id], (err) => {
       if (err) {
-        console.error(err);
+        console.error('cambiarEstado error:', err.message);
         return res.status(500).json({ error: 'Error al actualizar estado' });
       }
       res.json({ ok: true, mensaje: 'Estado actualizado correctamente' });
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('cambiarEstado error:', error.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
@@ -160,13 +161,13 @@ const deleteCita = (req, res) => {
     if (!id) return res.status(400).json({ error: 'ID requerido' });
 
     db.query('DELETE FROM citas WHERE id = ?', [id], (err, result) => {
-      if (err)                    return res.status(500).json({ error: 'Error al eliminar' });
+      if (err)                       return res.status(500).json({ error: 'Error al eliminar' });
       if (result.affectedRows === 0) return res.status(404).json({ error: 'Cita no encontrada' });
       res.json({ ok: true, mensaje: 'Cita eliminada correctamente' });
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('deleteCita error:', error.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
