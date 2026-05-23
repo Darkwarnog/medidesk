@@ -1,0 +1,683 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediDesk — Citas Médicas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f8fa;
+      --surface: #ffffff;
+      --surface2: #f0f2f6;
+      --border: #e2e6ed;
+      --border2: #c8cfd9;
+      --text: #111827;
+      --text2: #5a6475;
+      --text3: #9aa3b0;
+      --blue: #1a6ef5;
+      --blue-light: #e8f0fe;
+      --blue-dark: #1251c0;
+      --green: #15803d;
+      --green-light: #dcfce7;
+      --orange: #c2560a;
+      --orange-light: #fff3e0;
+      --red: #b91c1c;
+      --red-light: #fee2e2;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    #app { display: flex; min-height: 100vh; }
+
+    #sidebar {
+      width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-brand {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-brand h1 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--blue);
+      letter-spacing: -0.3px;
+    }
+    .sidebar-brand p {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    #reloj {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--text2);
+      padding: 10px 20px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav { padding: 12px 0; flex: 1; }
+
+    nav button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 9px 20px;
+      background: none;
+      border: none;
+      border-radius: 0;
+      color: var(--text2);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+    }
+    nav button:hover { background: var(--blue-light); color: var(--blue); }
+    nav button.active { background: var(--blue-light); color: var(--blue); font-weight: 500; border-left: 3px solid var(--blue); }
+    nav button svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+    .nav-divider { height: 1px; background: var(--border); margin: 8px 20px; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-footer button {
+      width: 100%;
+      padding: 8px 14px;
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text2);
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .sidebar-footer button:hover { background: var(--red-light); color: var(--red); border-color: #fca5a5; }
+
+    #main {
+      margin-left: 220px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar h2 { font-size: 16px; font-weight: 500; color: var(--text); }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+    .btn {
+      padding: 7px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid transparent;
+    }
+    .btn-primary { background: var(--blue); color: white; }
+    .btn-primary:hover { background: var(--blue-dark); }
+    .btn-ghost { background: none; border-color: var(--border2); color: var(--text2); }
+    .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+    .btn-danger { background: none; border-color: #fca5a5; color: var(--red); }
+    .btn-danger:hover { background: var(--red-light); }
+
+    #contenido-wrapper {
+      padding: 28px 32px;
+      flex: 1;
+    }
+
+    /* ── LOGIN ── */
+    #login {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 40px 40px 36px;
+      width: 380px;
+      box-shadow: var(--shadow-md);
+    }
+    .login-card .brand { text-align: center; margin-bottom: 28px; }
+    .login-card .brand h1 { font-size: 22px; font-weight: 600; color: var(--blue); }
+    .login-card .brand p { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 9px 13px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,110,245,0.1);
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .stat-card .label { font-size: 12px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .stat-card .value { font-size: 28px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
+    .stat-card.blue { border-top: 3px solid var(--blue); }
+    .stat-card.green { border-top: 3px solid var(--green); }
+    .stat-card.orange { border-top: 3px solid var(--orange); }
+
+    #tablaContainer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+    }
+    .tabla-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .tabla-header h3 { font-size: 15px; font-weight: 500; }
+    #busqueda {
+      padding: 7px 12px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      width: 220px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #busqueda:focus { border-color: var(--blue); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 800px; }
+    thead th {
+      padding: 11px 12px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg); }
+    td { padding: 12px 12px; color: var(--text); vertical-align: middle; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 500;
+      gap: 4px;
+    }
+    .badge-pendiente  { background: var(--orange-light); color: var(--orange); }
+    .badge-completada { background: var(--green-light);  color: var(--green);  }
+    .badge-cancelada  { background: var(--red-light);    color: var(--red);    }
+    .badge-alta       { background: var(--red-light);    color: var(--red);    }
+    .badge-media      { background: var(--orange-light); color: var(--orange); }
+    .badge-baja       { background: var(--green-light);  color: var(--green);  }
+    .badge-general    { background: var(--blue-light);   color: var(--blue);   }
+    .badge-urgencia   { background: var(--red-light);    color: var(--red);    }
+    .badge-seguimiento{ background: #f3e8ff;             color: #6b21a8;       }
+
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+    .estado-select {
+      padding: 6px 10px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      color: var(--text2);
+      background: var(--surface);
+      cursor: pointer;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    .estado-select:hover  { border-color: var(--blue); }
+    .estado-select:focus  { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,110,245,0.1); }
+
+    .form-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      max-width: 560px;
+    }
+    .form-panel-header { padding: 18px 24px; border-bottom: 1px solid var(--border); }
+    .form-panel-header h3 { font-size: 15px; font-weight: 500; }
+    .form-panel-header p  { font-size: 12.5px; color: var(--text3); margin-top: 2px; }
+    .form-panel-body { padding: 24px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .usuarios-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .usuario-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .usuario-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--blue-light);
+      color: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 14px;
+    }
+    .usuario-info h4 { font-size: 14px; font-weight: 500; }
+    .usuario-info p  { font-size: 12.5px; color: var(--text2); }
+    .rol-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .rol-admin   { background: var(--blue-light);  color: var(--blue); }
+    .rol-usuario { background: var(--surface2);    color: var(--text2); }
+
+    .estados-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+    .estado-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .estado-col-header { padding: 14px 18px; font-size: 13px; font-weight: 500; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .estado-col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .cita-mini {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      background: var(--bg);
+    }
+    .cita-mini h4 { font-size: 13px; font-weight: 500; }
+    .cita-mini p  { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+    .welcome-card {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+      border-radius: var(--radius);
+      padding: 32px;
+      color: white;
+      margin-bottom: 24px;
+    }
+    .welcome-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+    .welcome-card p  { font-size: 14px; opacity: 0.8; }
+
+    .empty-state { padding: 48px; text-align: center; color: var(--text3); }
+    .empty-state p { font-size: 14px; }
+
+    /* ── LOGIN error message ── */
+    #login-error {
+      color: var(--red);
+      font-size: 13px;
+      margin-top: 10px;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    /* ── DARK MODE ── */
+    body.dark {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+      --border: #2a2f40; --border2: #363b52;
+      --text: #e8ecf4; --text2: #8b93a8; --text3: #565f7a;
+      --blue-light: #1a2a4a; --blue: #4a90f5;
+      --green-light: #0f2a1a; --orange-light: #2a1a0a;
+      --red-light: #2a0f0f;
+    }
+
+    .hidden { display: none !important; }
+    .mt-4   { margin-top: 16px; }
+    .flex   { display: flex; align-items: center; gap: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN
+══════════════════════════════════════════ -->
+<div id="login">
+  <div class="login-card">
+    <div class="brand">
+      <h1>MediDesk</h1>
+      <p>Sistema de citas médicas</p>
+    </div>
+    <div class="form-group">
+      <label>Correo electrónico</label>
+      <input type="email" id="email" placeholder="doctor@hospital.com"
+             onkeydown="if(event.key==='Enter') login()">
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="password" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter') login()">
+    </div>
+    <div id="login-error"></div>
+    <button class="btn btn-primary" style="width:100%; margin-top:8px; justify-content:center;"
+            onclick="login()">
+      Iniciar sesión
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SISTEMA (se muestra tras login)
+══════════════════════════════════════════ -->
+<div id="sistema" class="hidden">
+  <div id="app">
+
+    <!-- ── SIDEBAR ── -->
+    <aside id="sidebar">
+      <div class="sidebar-brand">
+        <h1>MediDesk</h1>
+        <p id="rol-badge-sidebar">Panel administrativo</p>
+      </div>
+      <div id="reloj"></div>
+
+      <nav>
+        <button onclick="mostrarDashboard()" id="nav-inicio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Inicio
+        </button>
+        <button onclick="obtenerCitas()" id="nav-citas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Citas
+        </button>
+        <button onclick="mostrarPorEstado()" id="nav-estados">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          Estados
+        </button>
+        <div class="nav-divider"></div>
+        <button onclick="cargarUsuarios()" id="nav-usuarios">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          Usuarios
+        </button>
+        <button onclick="toggleFormularioUsuario()" id="nav-nuevo-usuario">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          Nuevo usuario
+        </button>
+        <button onclick="toggleFormulario()" id="nav-nueva-cita">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4"/></svg>
+          Nueva cita
+        </button>
+        <div class="nav-divider"></div>
+        <button onclick="toggleDarkMode()" id="nav-dark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          Modo oscuro
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button onclick="logout()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Cerrar sesión
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main id="main">
+      <div class="topbar">
+        <h2 id="page-title">Inicio</h2>
+        <div class="topbar-actions">
+          <span style="font-size:12px; color:var(--text3);" id="topbar-info"></span>
+        </div>
+      </div>
+
+      <div id="contenido-wrapper">
+
+        <!-- Stats bar -->
+        <div class="stat-grid" id="stats-bar">
+          <div class="stat-card blue">
+            <div class="label">Total citas</div>
+            <div class="value" id="totalCitas">—</div>
+          </div>
+          <div class="stat-card green">
+            <div class="label">Total usuarios</div>
+            <div class="value" id="totalUsuarios">—</div>
+          </div>
+        </div>
+
+        <!-- Contenido dinámico -->
+        <div id="contenido"></div>
+
+        <!-- Tabla de citas -->
+        <div id="tablaContainer" class="hidden">
+          <div class="tabla-header">
+            <h3>Lista de citas</h3>
+            <input type="text" id="busqueda" placeholder="Buscar cita..." onkeyup="filtrarCitas()">
+          </div>
+          <table id="tablaCitas">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Paciente</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Motivo</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Categoría</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <!-- Formulario nuevo usuario -->
+        <div id="formUsuario" class="form-panel hidden">
+          <div class="form-panel-header">
+            <h3>Nuevo usuario</h3>
+            <p>Registra un nuevo usuario en el sistema</p>
+          </div>
+          <div class="form-panel-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="nuevoNombre" placeholder="Dr. García">
+              </div>
+              <div class="form-group">
+                <label>Correo</label>
+                <input type="email" id="nuevoEmail" placeholder="correo@hospital.com">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="nuevoPassword" placeholder="••••••••">
+              </div>
+              <div class="form-group">
+                <label>Rol</label>
+                <select id="nuevoRol">
+                  <option value="usuario">Usuario</option>
+                  <option value="tecnico">Técnico</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary mt-4" onclick="crearUsuario()">Guardar usuario</button>
+          </div>
+        </div>
+
+        <!-- Formulario nueva cita -->
+        <div id="formCita" class="form-panel hidden">
+          <div class="form-panel-header">
+            <h3>Nueva cita</h3>
+            <p>Programa una cita médica</p>
+          </div>
+          <div class="form-panel-body">
+            <div class="form-group">
+              <label>Paciente</label>
+              <!-- Buscador con autocompletado -->
+              <div style="position:relative;">
+                <input
+                  type="text"
+                  id="paciente_search"
+                  placeholder="Busca o escribe un nombre..."
+                  autocomplete="off"
+                  oninput="filtrarPacientes()"
+                  onfocus="mostrarDropdown()"
+                  onblur="ocultarDropdown()"
+                >
+                <ul id="paciente_dropdown"
+                    style="
+                      display:none;
+                      position:absolute;
+                      top:100%; left:0; right:0;
+                      background:var(--surface);
+                      border:1px solid var(--border2);
+                      border-top:none;
+                      border-radius:0 0 var(--radius-sm) var(--radius-sm);
+                      max-height:180px;
+                      overflow-y:auto;
+                      margin:0; padding:0;
+                      list-style:none;
+                      z-index:200;
+                      box-shadow:var(--shadow-md);
+                    ">
+                </ul>
+              </div>
+              <!-- ID oculto — se llena al seleccionar de la lista -->
+              <input type="hidden" id="paciente_id">
+              <span id="paciente_hint"
+                    style="font-size:11.5px;color:var(--text3);margin-top:4px;display:block;">
+                Selecciona de la lista o escribe un nombre nuevo
+              </span>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="fecha">
+              </div>
+              <div class="form-group">
+                <label>Hora</label>
+                <input type="time" id="hora">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Motivo</label>
+              <input type="text" id="motivo" placeholder="Ej: tos, diabetes, chequeo general...">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Estado</label>
+                <select id="estado">
+                  <option value="pendiente">Pendiente</option>
+                  <option value="completada">Completada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Prioridad</label>
+                <select id="prioridad">
+                  <option value="baja">Baja</option>
+                  <option value="media">Media</option>
+                  <option value="alta">Alta</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Categoría</label>
+              <select id="categoria">
+                <option value="general">General</option>
+                <option value="urgencia">Urgencia</option>
+                <option value="seguimiento">Seguimiento</option>
+              </select>
+            </div>
+            <button class="btn btn-primary mt-4" onclick="guardarCita()">Guardar cita</button>
+          </div>
+        </div>
+
+      </div><!-- /contenido-wrapper -->
+    </main>
+
+  </div><!-- /app -->
+</div><!-- /sistema -->
+
+<!-- ══════════════════════════════════════════
+     ÚNICO script: app.js
+     (sin código inline duplicado)
+══════════════════════════════════════════ -->
+<script src="app.js"></script>
+
+</body>
+</html>
