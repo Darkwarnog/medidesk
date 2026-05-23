@@ -24,11 +24,17 @@ app.get('/fix-passwords', async (req, res) => {
   try {
     const bcrypt = require('bcrypt');
     const hash = await bcrypt.hash('admin123', 10);
-    db.promise().query('UPDATE usuarios SET password = ?', [hash])
-      .then(([result]) => {
-        res.json({ ok: true, actualizados: result.affectedRows, mensaje: 'Contraseñas reseteadas a admin123' });
-      })
-      .catch(err => res.json({ error: err.message }));
+
+    db.query('SELECT id, nombre, email FROM usuarios', async (err, users) => {
+      if (err) return res.json({ error: err.message, paso: 'SELECT' });
+
+      if (users.length === 0) return res.json({ error: 'No hay usuarios en la tabla' });
+
+      db.query('UPDATE usuarios SET password = ?', [hash], (err2, result) => {
+        if (err2) return res.json({ error: err2.message, paso: 'UPDATE' });
+        res.json({ ok: true, usuarios_encontrados: users, actualizados: result.affectedRows });
+      });
+    });
   } catch(e) {
     res.json({ error: e.message });
   }
