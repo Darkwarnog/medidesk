@@ -23,7 +23,7 @@ const db = require('./db');
 app.get('/fix-passwords', async (req, res) => {
   const bcrypt = require('bcrypt');
   const hash = await bcrypt.hash('admin123', 10);
-  db.query('UPDATE usuarios SET password = ? WHERE LENGTH(password) < 30', [hash], (err, result) => {
+  db.query('UPDATE usuarios SET password = ?', [hash], (err, result) => {
     if (err) return res.json({ error: err.message });
     res.json({ ok: true, actualizados: result.affectedRows, mensaje: 'Contraseñas reseteadas a admin123' });
   });
@@ -41,7 +41,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// ✅ 0.0.0.0 para que Railway detecte el servidor
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Servidor corriendo en puerto ${PORT}`);
