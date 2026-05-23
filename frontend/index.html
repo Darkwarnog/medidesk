@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -169,7 +168,7 @@
       flex: 1;
     }
 
-    /* ── LOGIN ── */
+    /* ── LOGIN / REGISTRO ── */
     #login {
       min-height: 100vh;
       display: flex;
@@ -188,6 +187,32 @@
     .login-card .brand { text-align: center; margin-bottom: 28px; }
     .login-card .brand h1 { font-size: 22px; font-weight: 600; color: var(--blue); }
     .login-card .brand p { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+    /* Tabs login / registro */
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      background: none;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text3);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+    .auth-tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+    .auth-tab:hover:not(.active) { color: var(--text2); }
 
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -385,9 +410,16 @@
     .empty-state { padding: 48px; text-align: center; color: var(--text3); }
     .empty-state p { font-size: 14px; }
 
-    /* ── LOGIN error message ── */
-    #login-error {
-      color: var(--red);
+    #login-error, #register-error {
+      font-size: 13px;
+      margin-top: 10px;
+      text-align: center;
+      min-height: 20px;
+    }
+    #login-error { color: var(--red); }
+    #register-error { color: var(--red); }
+    #register-success {
+      color: var(--green);
       font-size: 13px;
       margin-top: 10px;
       text-align: center;
@@ -412,7 +444,7 @@
 <body>
 
 <!-- ══════════════════════════════════════════
-     LOGIN
+     LOGIN / REGISTRO
 ══════════════════════════════════════════ -->
 <div id="login">
   <div class="login-card">
@@ -420,21 +452,56 @@
       <h1>MediDesk</h1>
       <p>Sistema de citas médicas</p>
     </div>
-    <div class="form-group">
-      <label>Correo electrónico</label>
-      <input type="email" id="email" placeholder="doctor@hospital.com"
-             onkeydown="if(event.key==='Enter') login()">
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="mostrarTab('login')">Iniciar sesión</button>
+      <button class="auth-tab" id="tab-register" onclick="mostrarTab('register')">Crear cuenta</button>
     </div>
-    <div class="form-group">
-      <label>Contraseña</label>
-      <input type="password" id="password" placeholder="••••••••"
-             onkeydown="if(event.key==='Enter') login()">
+
+    <!-- Formulario login -->
+    <div id="form-login">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="email" placeholder="doctor@hospital.com"
+               onkeydown="if(event.key==='Enter') login()">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="password" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') login()">
+      </div>
+      <div id="login-error"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:8px; justify-content:center;"
+              onclick="login()">
+        Iniciar sesión
+      </button>
     </div>
-    <div id="login-error"></div>
-    <button class="btn btn-primary" style="width:100%; margin-top:8px; justify-content:center;"
-            onclick="login()">
-      Iniciar sesión
-    </button>
+
+    <!-- Formulario registro -->
+    <div id="form-register" class="hidden">
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" id="reg-nombre" placeholder="Dr. García">
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="doctor@hospital.com">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="reg-password" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') registrar()">
+      </div>
+      <input type="hidden" id="reg-rol" value="usuario">
+      <div id="register-error"></div>
+      <div id="register-success"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:8px; justify-content:center;"
+              onclick="registrar()">
+        Crear cuenta
+      </button>
+    </div>
+
   </div>
 </div>
 
@@ -565,12 +632,10 @@
                 <label>Contraseña</label>
                 <input type="password" id="nuevoPassword" placeholder="••••••••">
               </div>
-              <div class="form-group">
+              <div class="form-group" id="nuevoRolGroup">
                 <label>Rol</label>
                 <select id="nuevoRol">
                   <option value="usuario">Usuario</option>
-                  <option value="tecnico">Técnico</option>
-                  <option value="admin">Admin</option>
                 </select>
               </div>
             </div>
@@ -587,7 +652,6 @@
           <div class="form-panel-body">
             <div class="form-group">
               <label>Paciente</label>
-              <!-- Buscador con autocompletado -->
               <div style="position:relative;">
                 <input
                   type="text"
@@ -616,7 +680,6 @@
                     ">
                 </ul>
               </div>
-              <!-- ID oculto — se llena al seleccionar de la lista -->
               <input type="hidden" id="paciente_id">
               <span id="paciente_hint"
                     style="font-size:11.5px;color:var(--text3);margin-top:4px;display:block;">
@@ -673,11 +736,96 @@
   </div><!-- /app -->
 </div><!-- /sistema -->
 
-<!-- ══════════════════════════════════════════
-     ÚNICO script: app.js
-     (sin código inline duplicado)
-══════════════════════════════════════════ -->
 <script src="app.js"></script>
+<script>
+  // ── TABS login / registro ──
+  function mostrarTab(tab) {
+    const esLogin = tab === 'login';
+    document.getElementById('form-login').classList.toggle('hidden', !esLogin);
+    document.getElementById('form-register').classList.toggle('hidden', esLogin);
+    document.getElementById('tab-login').classList.toggle('active', esLogin);
+    document.getElementById('tab-register').classList.toggle('active', !esLogin);
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('register-error').textContent = '';
+    document.getElementById('register-success').textContent = '';
+  }
+
+  // ── REGISTRO ──
+  async function registrar() {
+    const nombre   = document.getElementById('reg-nombre').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const rol      = document.getElementById('reg-rol').value;
+    const errEl    = document.getElementById('register-error');
+    const okEl     = document.getElementById('register-success');
+
+    errEl.textContent = '';
+    okEl.textContent  = '';
+
+    if (!nombre || !email || !password) {
+      errEl.textContent = 'Todos los campos son obligatorios.';
+      return;
+    }
+    if (password.length < 6) {
+      errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+      return;
+    }
+
+    try {
+      const res  = await fetch('/api/usuarios/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, email, password, rol })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errEl.textContent = data.error || 'Error al crear la cuenta.';
+        return;
+      }
+
+      okEl.textContent = '¡Cuenta creada! Ya puedes iniciar sesión.';
+      document.getElementById('reg-nombre').value   = '';
+      document.getElementById('reg-email').value    = '';
+      document.getElementById('reg-password').value = '';
+      setTimeout(() => mostrarTab('login'), 1800);
+
+    } catch (e) {
+      errEl.textContent = 'No se pudo conectar con el servidor.';
+    }
+  }
+
+  // ── Rellena el select de rol según quien está logueado ──
+  function ajustarRolesDisponibles() {
+    const raw = localStorage.getItem('usuario') || sessionStorage.getItem('usuario') || '{}';
+    const usuario = JSON.parse(raw);
+    const select = document.getElementById('nuevoRol');
+    if (!select) return;
+
+    select.innerHTML = '';
+
+    if (usuario.rol === 'admin') {
+      select.innerHTML = `
+        <option value="usuario">Usuario</option>
+        <option value="tecnico">Técnico</option>
+        <option value="admin">Admin</option>
+      `;
+    } else {
+      select.innerHTML = '<option value="usuario">Usuario</option>';
+    }
+  }
+
+  // Interceptar toggleFormularioUsuario para ajustar roles al abrir
+  document.addEventListener('DOMContentLoaded', function() {
+    const original = window.toggleFormularioUsuario;
+    if (typeof original === 'function') {
+      window.toggleFormularioUsuario = function() {
+        original();
+        ajustarRolesDisponibles();
+      };
+    }
+  });
+</script>
 
 </body>
 </html>
