@@ -69,15 +69,15 @@ const login = async (req, res) => {
         return res.status(401).json({ error: 'Contraseña incorrecta' });
       }
 
-      // ✅ Se lee process.env.JWT_SECRET en tiempo de ejecución
       if (!process.env.JWT_SECRET) {
         console.error('JWT_SECRET no definido en variables de entorno');
         return res.status(500).json({ error: 'Error de configuración del servidor' });
       }
 
+      // ✅ Clave leída en tiempo de ejecución
       const token = jwt.sign(
         { id: user.id, rol: user.rol },
-        process.env.JWT_SECRET, // ✅ directo del env, no desde una constante
+        process.env.JWT_SECRET,
         { expiresIn: '1h' }
       );
 
@@ -158,7 +158,4 @@ const deleteUsuario = (req, res) => {
   }
 };
 
-// ══════════════════════════════════════════
-// 📦 EXPORTAR
-// ══════════════════════════════════════════
 module.exports = { register, login, createUsuario, deleteUsuario };

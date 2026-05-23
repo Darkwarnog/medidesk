@@ -31,12 +31,12 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 
 // 🔹 ruta principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
 // ✅ Puerto dinámico que Railway asigna
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-    console.log(`✅ Servidor corriendo en puerto ${PORT}`);
+  console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
