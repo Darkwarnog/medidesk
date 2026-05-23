@@ -1,14 +1,8 @@
 // ══════════════════════════════════════════════════════════════
 //  MediDesk — app.js
-//  Corregido: login, permisos por rol, integración con index.html
 // ══════════════════════════════════════════════════════════════
 
-// ── AJUSTA ESTE ENDPOINT AL DE TU BACKEND ──────────────────────
-// Opción A (si tu backend usa /api/usuarios/login):
 const LOGIN_ENDPOINT = '/api/usuarios/login';
-// Opción B (si tu backend usa /api/auth/login):
-// const LOGIN_ENDPOINT = '/api/auth/login';
-
 const API = window.location.origin;
 
 // ── PERMISOS POR ROL ──────────────────────────────────────────
@@ -64,7 +58,6 @@ function aplicarPermisosSidebar() {
     btn.style.display = permisos.includes(accion) ? '' : 'none';
   });
 
-  // Badge de rol en sidebar
   const colores  = { admin: '#1a6ef5', tecnico: '#6b21a8', usuario: '#15803d' };
   const color    = colores[rol] || '#9aa3b0';
   const badgeEl  = document.getElementById('rol-badge-sidebar');
@@ -110,14 +103,12 @@ function login() {
     return data;
   })
   .then(data => {
-    // Soporta { token, usuario } o { token, user }
     const usuario = data.usuario || data.user || {};
-
     if (!data.token) throw new Error('El servidor no devolvió un token.');
 
     localStorage.setItem('token',    data.token);
     localStorage.setItem('rol',      normalizarRol(usuario.rol));
-    localStorage.setItem('userId',   usuario.id   || '');
+    localStorage.setItem('userId',   usuario.id     || '');
     localStorage.setItem('userName', usuario.nombre || usuario.name || '');
 
     verificarSesion();
@@ -134,7 +125,6 @@ function logout() {
   localStorage.removeItem('rol');
   localStorage.removeItem('userId');
   localStorage.removeItem('userName');
-  // Limpia el formulario de login
   const emailEl = document.getElementById('email');
   const passEl  = document.getElementById('password');
   if (emailEl) emailEl.value = '';
@@ -177,20 +167,18 @@ function toggleFormulario() {
   limpiarPantalla();
   document.getElementById('formCita').classList.remove('hidden');
 
-  // Fecha por defecto = hoy
   const fechaInput = document.getElementById('fecha');
   if (fechaInput) fechaInput.valueAsDate = new Date();
 
-  // Recargar lista de pacientes por si cambió
+  const sEl = document.getElementById('paciente_search');
+  const hEl = document.getElementById('paciente_id');
+  const nEl = document.getElementById('paciente_hint');
+  if (sEl) sEl.value = '';
+  if (hEl) hEl.value = '';
+  if (nEl) nEl.textContent = 'Selecciona de la lista o escribe un nombre nuevo';
 
-  // Limpiar buscador de paciente
-  const sEl = document.getElementById("paciente_search");
-  const hEl = document.getElementById("paciente_id");
-  const nEl = document.getElementById("paciente_hint");
-  if (sEl) sEl.value = "";
-  if (hEl) hEl.value = "";
-  if (nEl) nEl.textContent = "Selecciona de la lista o escribe un nombre nuevo";
   cargarPacientes();
+  ajustarCampoPaciente();  // ✅ ajusta el campo según rol
 }
 
 function toggleFormularioUsuario() {
@@ -202,8 +190,27 @@ function toggleFormularioUsuario() {
   document.getElementById('formUsuario').classList.remove('hidden');
 }
 
+// ── AJUSTAR CAMPO PACIENTE SEGÚN ROL ─────────────────────────
+function ajustarCampoPaciente() {
+  const rol       = localStorage.getItem('rol') || 'usuario';
+  const nombre    = localStorage.getItem('userName') || '';
+  const buscador  = document.getElementById('paciente-field-buscador');
+  const fijo      = document.getElementById('paciente-field-fijo');
+  const fijoInput = document.getElementById('paciente_nombre_fijo');
+  if (!buscador || !fijo) return;
+
+  if (rol === 'usuario') {
+    buscador.style.display = 'none';
+    fijo.style.display     = '';
+    if (fijoInput) fijoInput.value = nombre || 'Mi cuenta';
+  } else {
+    buscador.style.display = '';
+    fijo.style.display     = 'none';
+  }
+}
+
 // ── PACIENTES — buscador con autocompletado ───────────────────
-let _pacientesCache = [];   // lista completa cargada del servidor
+let _pacientesCache = [];
 
 function cargarPacientes() {
   fetch(`${API}/api/usuarios`, {
@@ -216,7 +223,9 @@ function cargarPacientes() {
   })
   .then(response => {
     if (!response) return;
-    _pacientesCache = response.data || [];
+    _pacientesCache = Array.isArray(response)
+      ? response
+      : (response.data || response.usuarios || []);
   })
   .catch(err => console.error('Error al cargar pacientes:', err));
 }
@@ -229,8 +238,6 @@ function filtrarPacientes() {
   if (!input || !dropdown) return;
 
   const texto = input.value.trim();
-
-  // Al escribir libremente, limpiar el ID oculto
   hiddenId.value = '';
 
   const resultados = texto.length === 0
@@ -244,18 +251,17 @@ function filtrarPacientes() {
       const li = document.createElement('li');
       li.textContent = p.nombre;
       li.style.cssText = 'padding:9px 13px;cursor:pointer;font-size:14px;color:var(--text);transition:background 0.1s;';
-      li.addEventListener('mousedown', () => {         // mousedown antes del blur
+      li.addEventListener('mousedown', () => {
         input.value    = p.nombre;
         hiddenId.value = p.id;
-        if (hint) hint.textContent = `✓ Paciente registrado seleccionado`;
+        if (hint) hint.textContent = '✓ Paciente registrado seleccionado';
         dropdown.style.display = 'none';
       });
-      li.addEventListener('mouseover',  () => li.style.background = 'var(--blue-light)');
-      li.addEventListener('mouseout',   () => li.style.background = '');
+      li.addEventListener('mouseover', () => li.style.background = 'var(--blue-light)');
+      li.addEventListener('mouseout',  () => li.style.background = '');
       dropdown.appendChild(li);
     });
   } else if (texto.length > 0) {
-    // No hay coincidencias → permitir nombre libre
     const li = document.createElement('li');
     li.style.cssText = 'padding:9px 13px;font-size:13px;color:var(--text3);font-style:italic;';
     li.textContent = `"${texto}" — nombre nuevo`;
@@ -270,10 +276,7 @@ function mostrarDropdown() {
   const input    = document.getElementById('paciente_search');
   const dropdown = document.getElementById('paciente_dropdown');
   if (!input || !dropdown) return;
-  // Si no hay texto aún, mostrar toda la lista
-  if (input.value.trim() === '' && _pacientesCache.length > 0) {
-    filtrarPacientes();
-  }
+  if (input.value.trim() === '' && _pacientesCache.length > 0) filtrarPacientes();
   if (dropdown.children.length > 0) dropdown.style.display = 'block';
 }
 
@@ -302,7 +305,7 @@ function cargarUsuarios() {
   })
   .then(response => {
     if (!response) return;
-    const usuarios = response.data || [];
+    const usuarios = Array.isArray(response) ? response : (response.data || []);
     const totalEl  = document.getElementById('totalUsuarios');
     if (totalEl) totalEl.textContent = usuarios.length;
 
@@ -335,12 +338,10 @@ function cargarUsuarios() {
         <div class="flex" style="justify-content:space-between;">
           <span class="rol-badge" style="background:${color}22;color:${color};">${u.rol || 'usuario'}</span>
           ${puedeEliminar
-            ? `<button class="btn btn-danger" style="padding:4px 10px;font-size:12px;"
-                       data-id="${u.id}">Eliminar</button>`
+            ? `<button class="btn btn-danger" style="padding:4px 10px;font-size:12px;" data-id="${u.id}">Eliminar</button>`
             : ''}
         </div>`;
 
-      // Listener seguro (evita inyección de onclick con IDs maliciosos)
       if (puedeEliminar) {
         card.querySelector('button').addEventListener('click', () => eliminarUsuario(u.id));
       }
@@ -372,7 +373,6 @@ function crearUsuario() {
   })
   .then(() => {
     alert('Usuario creado ✅');
-    // Limpiar campos
     document.getElementById('nuevoNombre').value   = '';
     document.getElementById('nuevoEmail').value    = '';
     document.getElementById('nuevoPassword').value = '';
@@ -395,10 +395,7 @@ function eliminarUsuario(id) {
     if (!res.ok) throw new Error(data.error || 'Error al eliminar usuario');
     return data;
   })
-  .then(() => {
-    cargarUsuarios();
-    cargarPacientes();
-  })
+  .then(() => { cargarUsuarios(); cargarPacientes(); })
   .catch(error => { console.error(error); alert(error.message); });
 }
 
@@ -443,15 +440,14 @@ function obtenerCitas() {
 
       const tr = document.createElement('tr');
 
-      // Celda estado: select o badge según permisos
       let estadoCelda;
       if (puedeCambiarEstado) {
         estadoCelda = document.createElement('td');
         const sel   = document.createElement('select');
         sel.className = 'estado-select';
         [['pendiente','⏳ Pendiente'],['completada','✅ Completada'],['cancelada','❌ Cancelada']].forEach(([val, label]) => {
-          const opt    = document.createElement('option');
-          opt.value    = val;
+          const opt       = document.createElement('option');
+          opt.value       = val;
           opt.textContent = label;
           if (cita.estado === val) opt.selected = true;
           sel.appendChild(opt);
@@ -477,16 +473,15 @@ function obtenerCitas() {
       const tdAcc = document.createElement('td');
       if (puedeEliminar) {
         const btnEl = document.createElement('button');
-        btnEl.className   = 'btn btn-danger';
+        btnEl.className     = 'btn btn-danger';
         btnEl.style.cssText = 'padding:5px 12px;font-size:12px;';
-        btnEl.textContent = 'Eliminar';
+        btnEl.textContent   = 'Eliminar';
         btnEl.addEventListener('click', () => eliminarCita(cita.id));
         tdAcc.appendChild(btnEl);
       } else {
         tdAcc.textContent = '—';
       }
       tr.appendChild(tdAcc);
-
       tbody.appendChild(tr);
     });
   })
@@ -519,21 +514,33 @@ function cambiarEstado(id, estado) {
 function guardarCita() {
   if (!puedePor('nueva-cita')) return alert('No tienes permiso');
 
-  const paciente_id     = document.getElementById('paciente_id').value;        // ID si eligió de la lista
-  const paciente_nombre = (document.getElementById('paciente_search')?.value || '').trim(); // nombre libre
-  const fecha           = document.getElementById('fecha').value;
-  const hora            = document.getElementById('hora').value;
-  const motivo          = document.getElementById('motivo').value.trim();
-  const estado          = document.getElementById('estado').value;
-  const prioridad       = document.getElementById('prioridad').value;
-  const categoria       = document.getElementById('categoria').value;
+  const rol = localStorage.getItem('rol') || 'usuario';
+
+  let paciente_id     = '';
+  let paciente_nombre = '';
+
+  if (rol === 'usuario') {
+    // ✅ Usuario: usa su propio ID y nombre del localStorage
+    paciente_id     = localStorage.getItem('userId')   || '';
+    paciente_nombre = localStorage.getItem('userName') || '';
+  } else {
+    // ✅ Admin/técnico: usa el buscador
+    paciente_id     = (document.getElementById('paciente_id')?.value     || '').trim();
+    paciente_nombre = (document.getElementById('paciente_search')?.value || '').trim();
+  }
+
+  const fecha     = document.getElementById('fecha').value;
+  const hora      = document.getElementById('hora').value;
+  const motivo    = document.getElementById('motivo').value.trim();
+  const estado    = document.getElementById('estado').value;
+  const prioridad = document.getElementById('prioridad').value;
+  const categoria = document.getElementById('categoria').value;
 
   if (!paciente_id && !paciente_nombre) return alert('Escribe o selecciona un paciente');
   if (!fecha)  return alert('Selecciona una fecha');
   if (!hora)   return alert('Selecciona una hora');
   if (!motivo) return alert('Ingresa el motivo de la cita');
 
-  // Enviamos paciente_id si existe, si no enviamos paciente_nombre como string libre
   const body = { fecha, hora, motivo, estado, prioridad, categoria };
   if (paciente_id) {
     body.paciente_id = paciente_id;
@@ -553,7 +560,6 @@ function guardarCita() {
   })
   .then(() => {
     alert('Cita creada ✅');
-    // Limpiar buscador de paciente
     const searchEl = document.getElementById('paciente_search');
     const hiddenEl = document.getElementById('paciente_id');
     const hintEl   = document.getElementById('paciente_hint');
@@ -664,7 +670,7 @@ function toggleDarkMode() {
   document.body.classList.toggle('dark');
 }
 
-// ── RELOJ (único, en sidebar) ─────────────────────────────────
+// ── RELOJ ─────────────────────────────────────────────────────
 function actualizarReloj() {
   const reloj = document.getElementById('reloj');
   if (!reloj) return;
