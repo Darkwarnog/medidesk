@@ -12,12 +12,16 @@ const pool = mysql.createPool({
   port:               process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit:    10,
-  queueLimit:         0
+  queueLimit:         0,
+  enableKeepAlive:    true,
+  keepAliveInitialDelay: 0
 });
 
+// ✅ Verificar conexión sin detener el servidor si falla
 pool.getConnection((err, connection) => {
   if (err) {
     console.error('Error conectando MySQL:', err.message);
+    console.log('El servidor seguirá intentando conectar...');
     return;
   }
   console.log('Conectado a MySQL correctamente');
