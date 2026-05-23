@@ -4,6 +4,14 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
+// ✅ Validar variables críticas al arrancar
+if (!process.env.JWT_SECRET) {
+  console.error('❌ JWT_SECRET no definido en variables de entorno');
+  process.exit(1);
+}
+
+console.log('✅ JWT_SECRET cargado correctamente');
+
 app.use(cors());
 app.use(express.json());
 
@@ -22,10 +30,9 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// 🔹 puerto dinámico para Render
-const PORT = process.env.PORT || 3000;
+// ✅ Puerto dinámico que Railway asigna
+const PORT = process.env.PORT || 8080;
 
-// 🔹 iniciar servidor
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
+    console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
