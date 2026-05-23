@@ -17,18 +17,6 @@ console.log('✅ JWT_SECRET cargado correctamente');
 app.use(cors());
 app.use(express.json());
 
-const db = require('./db');
-
-// 🔧 RUTA TEMPORAL — borrar después de usar
-app.get('/fix-passwords', async (req, res) => {
-  const bcrypt = require('bcrypt');
-  const hash = await bcrypt.hash('admin123', 10);
-  db.query('UPDATE usuarios SET password = ? WHERE LENGTH(password) < 30', [hash], (err, result) => {
-    if (err) return res.json({ error: err.message });
-    res.json({ ok: true, actualizados: result.affectedRows, mensaje: 'Contraseñas reseteadas a admin123' });
-  });
-});
-
 const usuariosRoutes = require('./routes/usuarios');
 const citasRoutes = require('./routes/citas');
 
