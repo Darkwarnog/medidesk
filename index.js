@@ -14,7 +14,12 @@ if (!process.env.JWT_SECRET) {
 
 console.log('✅ JWT_SECRET cargado correctamente');
 
-app.use(cors());
+// ✅ CORS configurado para Netlify
+app.use(cors({
+  origin: ['https://stellular-selkie-aebd80.netlify.app', 'http://localhost:3000'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 const db = require('./db');

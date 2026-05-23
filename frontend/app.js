@@ -3,8 +3,7 @@
 // ══════════════════════════════════════════════════════════════
 
 const LOGIN_ENDPOINT = '/api/usuarios/login';
-const API = window.location.origin;
-
+const API = 'https://medidesk-production.up.railway.app';
 // ── PERMISOS POR ROL ──────────────────────────────────────────
 const PERMISOS = {
   admin:   ['dashboard','citas','estados','usuarios','nuevo-usuario','nueva-cita','eliminar-cita','eliminar-usuario','cambiar-estado'],
