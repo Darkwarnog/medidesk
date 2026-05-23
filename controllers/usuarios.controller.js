@@ -1,15 +1,9 @@
 const db = require('../db');
-
 const bcrypt = require('bcrypt');
-
 const jwt = require('jsonwebtoken');
-
-
 
 // 🔐 CLAVE SECRETA
 const SECRET = 'secreto123';
-
-
 
 // 🔐 REGISTRO
 const register = async (req, res) => {
@@ -19,11 +13,9 @@ const register = async (req, res) => {
     const { nombre, email, password, rol } = req.body;
 
     if (!nombre || !email || !password || !rol) {
-
       return res.status(400).json({
         error: 'Todos los campos son obligatorios'
       });
-
     }
 
     // 🔍 VALIDAR SI YA EXISTE
@@ -33,22 +25,18 @@ const register = async (req, res) => {
       async (err, result) => {
 
         if (err) {
-
           return res.status(500).json({
             error: 'Error en BD'
           });
-
         }
 
         if (result.length > 0) {
-
           return res.status(400).json({
             error: 'El usuario ya existe'
           });
-
         }
 
-        // 🔒 ENCRIPTAR CONTRASEÑA
+        // 🔒 ENCRIPTAR PASSWORD
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const sql = `
@@ -63,13 +51,11 @@ const register = async (req, res) => {
           (err) => {
 
             if (err) {
-
               console.error(err);
 
               return res.status(500).json({
                 error: 'Error al registrar usuario'
               });
-
             }
 
             res.json({
@@ -95,8 +81,6 @@ const register = async (req, res) => {
 
 };
 
-
-
 // 🔐 LOGIN
 const login = (req, res) => {
 
@@ -105,11 +89,9 @@ const login = (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-
       return res.status(400).json({
         error: 'Email y password requeridos'
       });
-
     }
 
     const sql = 'SELECT * FROM usuarios WHERE email = ?';
@@ -117,22 +99,26 @@ const login = (req, res) => {
     db.query(sql, [email], async (err, results) => {
 
       if (err) {
+        console.error(err);
 
         return res.status(500).json({
           error: 'Error en BD'
         });
-
       }
 
       if (results.length === 0) {
-
         return res.status(404).json({
           error: 'Usuario no encontrado'
         });
-
       }
 
       const user = results[0];
+
+      // 🔥 DEBUG
+      console.log('================================');
+      console.log('EMAIL:', email);
+      console.log('PASSWORD ESCRITA:', password);
+      console.log('HASH BD:', user.password);
 
       // 🔒 COMPARAR PASSWORD
       const validPassword = await bcrypt.compare(
@@ -140,12 +126,13 @@ const login = (req, res) => {
         user.password
       );
 
-      if (!validPassword) {
+      console.log('RESULTADO BCRYPT:', validPassword);
+      console.log('================================');
 
+      if (!validPassword) {
         return res.status(401).json({
           error: 'Contraseña incorrecta'
         });
-
       }
 
       // 🔥 TOKEN
@@ -188,8 +175,6 @@ const login = (req, res) => {
 
 };
 
-
-
 // 👨‍💼 CREAR USUARIO
 const createUsuario = async (req, res) => {
 
@@ -198,36 +183,28 @@ const createUsuario = async (req, res) => {
     const { nombre, email, password, rol } = req.body;
 
     if (!nombre || !email || !password || !rol) {
-
       return res.status(400).json({
         error: 'Todos los campos son obligatorios'
       });
-
     }
 
-    // 🔍 VALIDAR EMAIL
     db.query(
       'SELECT * FROM usuarios WHERE email = ?',
       [email],
       async (err, result) => {
 
         if (err) {
-
           return res.status(500).json({
             error: 'Error en BD'
           });
-
         }
 
         if (result.length > 0) {
-
           return res.status(400).json({
             error: 'El usuario ya existe'
           });
-
         }
 
-        // 🔒 ENCRIPTAR PASSWORD
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const sql = `
@@ -242,13 +219,11 @@ const createUsuario = async (req, res) => {
           (err) => {
 
             if (err) {
-
               console.error(err);
 
               return res.status(500).json({
                 error: 'Error al crear usuario'
               });
-
             }
 
             res.status(201).json({
@@ -274,8 +249,6 @@ const createUsuario = async (req, res) => {
 
 };
 
-
-
 // 🗑️ ELIMINAR USUARIO
 const deleteUsuario = (req, res) => {
 
@@ -289,13 +262,11 @@ const deleteUsuario = (req, res) => {
       (err) => {
 
         if (err) {
-
           console.error(err);
 
           return res.status(500).json({
             error: 'Error al eliminar usuario'
           });
-
         }
 
         res.json({
@@ -318,14 +289,10 @@ const deleteUsuario = (req, res) => {
 
 };
 
-
-
 // 📦 EXPORTAR
 module.exports = {
-
   register,
   login,
   createUsuario,
   deleteUsuario
-
 };
