@@ -21,12 +21,17 @@ const db = require('./db');
 
 // 🔧 RUTA TEMPORAL — borrar después de usar
 app.get('/fix-passwords', async (req, res) => {
-  const bcrypt = require('bcrypt');
-  const hash = await bcrypt.hash('admin123', 10);
-  db.query('UPDATE usuarios SET password = ?', [hash], (err, result) => {
-    if (err) return res.json({ error: err.message });
-    res.json({ ok: true, actualizados: result.affectedRows, mensaje: 'Contraseñas reseteadas a admin123' });
-  });
+  try {
+    const bcrypt = require('bcrypt');
+    const hash = await bcrypt.hash('admin123', 10);
+    db.promise().query('UPDATE usuarios SET password = ?', [hash])
+      .then(([result]) => {
+        res.json({ ok: true, actualizados: result.affectedRows, mensaje: 'Contraseñas reseteadas a admin123' });
+      })
+      .catch(err => res.json({ error: err.message }));
+  } catch(e) {
+    res.json({ error: e.message });
+  }
 });
 
 const usuariosRoutes = require('./routes/usuarios');
