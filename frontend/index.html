@@ -168,7 +168,6 @@
       flex: 1;
     }
 
-    /* ── LOGIN / REGISTRO ── */
     #login {
       min-height: 100vh;
       display: flex;
@@ -188,7 +187,6 @@
     .login-card .brand h1 { font-size: 22px; font-weight: 600; color: var(--blue); }
     .login-card .brand p { font-size: 13px; color: var(--text3); margin-top: 4px; }
 
-    /* Tabs login / registro */
     .auth-tabs {
       display: flex;
       border-bottom: 1px solid var(--border);
@@ -208,10 +206,7 @@
       margin-bottom: -1px;
       transition: all 0.15s;
     }
-    .auth-tab.active {
-      color: var(--blue);
-      border-bottom-color: var(--blue);
-    }
+    .auth-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
     .auth-tab:hover:not(.active) { color: var(--text2); }
 
     .form-group { margin-bottom: 16px; }
@@ -426,7 +421,6 @@
       min-height: 20px;
     }
 
-    /* ── DARK MODE ── */
     body.dark {
       --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
       --border: #2a2f40; --border2: #363b52;
@@ -443,9 +437,6 @@
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════
-     LOGIN / REGISTRO
-══════════════════════════════════════════ -->
 <div id="login">
   <div class="login-card">
     <div class="brand">
@@ -453,13 +444,11 @@
       <p>Sistema de citas médicas</p>
     </div>
 
-    <!-- Tabs -->
     <div class="auth-tabs">
       <button class="auth-tab active" id="tab-login" onclick="mostrarTab('login')">Iniciar sesión</button>
       <button class="auth-tab" id="tab-register" onclick="mostrarTab('register')">Crear cuenta</button>
     </div>
 
-    <!-- Formulario login -->
     <div id="form-login">
       <div class="form-group">
         <label>Correo electrónico</label>
@@ -478,7 +467,6 @@
       </button>
     </div>
 
-    <!-- Formulario registro -->
     <div id="form-register" class="hidden">
       <div class="form-group">
         <label>Nombre completo</label>
@@ -501,17 +489,12 @@
         Crear cuenta
       </button>
     </div>
-
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SISTEMA (se muestra tras login)
-══════════════════════════════════════════ -->
 <div id="sistema" class="hidden">
   <div id="app">
 
-    <!-- ── SIDEBAR ── -->
     <aside id="sidebar">
       <div class="sidebar-brand">
         <h1>MediDesk</h1>
@@ -560,7 +543,6 @@
       </div>
     </aside>
 
-    <!-- ── MAIN ── -->
     <main id="main">
       <div class="topbar">
         <h2 id="page-title">Inicio</h2>
@@ -571,7 +553,6 @@
 
       <div id="contenido-wrapper">
 
-        <!-- Stats bar -->
         <div class="stat-grid" id="stats-bar">
           <div class="stat-card blue">
             <div class="label">Total citas</div>
@@ -583,10 +564,8 @@
           </div>
         </div>
 
-        <!-- Contenido dinámico -->
         <div id="contenido"></div>
 
-        <!-- Tabla de citas -->
         <div id="tablaContainer" class="hidden">
           <div class="tabla-header">
             <h3>Lista de citas</h3>
@@ -610,7 +589,6 @@
           </table>
         </div>
 
-        <!-- Formulario nuevo usuario -->
         <div id="formUsuario" class="form-panel hidden">
           <div class="form-panel-header">
             <h3>Nuevo usuario</h3>
@@ -643,7 +621,6 @@
           </div>
         </div>
 
-        <!-- Formulario nueva cita -->
         <div id="formCita" class="form-panel hidden">
           <div class="form-panel-header">
             <h3>Nueva cita</h3>
@@ -653,40 +630,15 @@
             <div class="form-group" id="paciente-field-buscador">
               <label>Paciente</label>
               <div style="position:relative;">
-                <input
-                  type="text"
-                  id="paciente_search"
-                  placeholder="Busca o escribe un nombre..."
-                  autocomplete="off"
-                  oninput="filtrarPacientes()"
-                  onfocus="mostrarDropdown()"
-                  onblur="ocultarDropdown()"
-                >
-                <ul id="paciente_dropdown"
-                    style="
-                      display:none;
-                      position:absolute;
-                      top:100%; left:0; right:0;
-                      background:var(--surface);
-                      border:1px solid var(--border2);
-                      border-top:none;
-                      border-radius:0 0 var(--radius-sm) var(--radius-sm);
-                      max-height:180px;
-                      overflow-y:auto;
-                      margin:0; padding:0;
-                      list-style:none;
-                      z-index:200;
-                      box-shadow:var(--shadow-md);
-                    ">
-                </ul>
+                <input type="text" id="paciente_search" placeholder="Busca o escribe un nombre..."
+                  autocomplete="off" oninput="filtrarPacientes()" onfocus="mostrarDropdown()" onblur="ocultarDropdown()">
+                <ul id="paciente_dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);max-height:180px;overflow-y:auto;margin:0;padding:0;list-style:none;z-index:200;box-shadow:var(--shadow-md);"></ul>
               </div>
               <input type="hidden" id="paciente_id">
-              <span id="paciente_hint"
-                    style="font-size:11.5px;color:var(--text3);margin-top:4px;display:block;">
+              <span id="paciente_hint" style="font-size:11.5px;color:var(--text3);margin-top:4px;display:block;">
                 Selecciona de la lista o escribe un nombre nuevo
               </span>
             </div>
-            <!-- Solo visible cuando el rol es usuario -->
             <div class="form-group" id="paciente-field-fijo" style="display:none;">
               <label>Paciente</label>
               <input type="text" id="paciente_nombre_fijo" disabled
@@ -739,15 +691,14 @@
           </div>
         </div>
 
-      </div><!-- /contenido-wrapper -->
+      </div>
     </main>
 
-  </div><!-- /app -->
-</div><!-- /sistema -->
+  </div>
+</div>
 
 <script src="app.js"></script>
 <script>
-  // ── TABS login / registro ──
   function mostrarTab(tab) {
     const esLogin = tab === 'login';
     document.getElementById('form-login').classList.toggle('hidden', !esLogin);
@@ -781,7 +732,8 @@
     }
 
     try {
-      const res  = await fetch('/api/usuarios/register', {
+      // ✅ URL completa de Railway
+      const res = await fetch('https://medidesk-production.up.railway.app/api/usuarios/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre, email, password, rol })
@@ -804,35 +756,29 @@
     }
   }
 
-  // ── Rellena el select de rol según quien está logueado ──
   function ajustarRolesDisponibles() {
     const raw = localStorage.getItem('usuario') || sessionStorage.getItem('usuario') || '{}';
     const usuario = JSON.parse(raw);
     const select = document.getElementById('nuevoRol');
     if (!select) return;
-
     select.innerHTML = '';
-
     if (usuario.rol === 'admin') {
       select.innerHTML = `
         <option value="usuario">Usuario</option>
         <option value="tecnico">Técnico</option>
-        <option value="admin">Admin</option>
-      `;
+        <option value="admin">Admin</option>`;
     } else {
       select.innerHTML = '<option value="usuario">Usuario</option>';
     }
   }
 
-  // ── Campo paciente según rol ──
   function ajustarCampoPaciente() {
-    const rol    = localStorage.getItem('rol') || 'usuario';
-    const nombre = localStorage.getItem('userName') || '';
-    const buscador = document.getElementById('paciente-field-buscador');
-    const fijo     = document.getElementById('paciente-field-fijo');
+    const rol       = localStorage.getItem('rol') || 'usuario';
+    const nombre    = localStorage.getItem('userName') || '';
+    const buscador  = document.getElementById('paciente-field-buscador');
+    const fijo      = document.getElementById('paciente-field-fijo');
     const fijoInput = document.getElementById('paciente_nombre_fijo');
     if (!buscador || !fijo) return;
-
     if (rol === 'usuario') {
       buscador.style.display = 'none';
       fijo.style.display     = '';
@@ -843,7 +789,6 @@
     }
   }
 
-  // Interceptar toggleFormularioUsuario para ajustar roles al abrir
   document.addEventListener('DOMContentLoaded', function() {
     const original = window.toggleFormularioUsuario;
     if (typeof original === 'function') {
@@ -852,8 +797,6 @@
         ajustarRolesDisponibles();
       };
     }
-
-    // Interceptar toggleFormulario (nueva cita) para ajustar campo paciente
     const originalCita = window.toggleFormulario;
     if (typeof originalCita === 'function') {
       window.toggleFormulario = function() {

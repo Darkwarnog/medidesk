@@ -6,7 +6,7 @@ const {
   getCitas,
   updateCita,
   cambiarEstado,
-  deleteCita          // ← ahora importado del controller
+  deleteCita
 } = require('../controllers/citas.controller');
 
 const authMiddleware = require('../middlewares/authMiddleware');
@@ -14,10 +14,8 @@ const roleMiddleware = require('../middlewares/roleMiddleware');
 const db             = require('../db');
 
 // 🔒 OBTENER CITAS
-// Admin y técnico ven todas; usuario solo las suyas
 router.get('/', authMiddleware, (req, res, next) => {
   if (req.user.rol === 'usuario') {
-    // Solo sus propias citas — con soporte para paciente_nombre libre
     const query = `
       SELECT
         citas.id,
@@ -38,20 +36,20 @@ router.get('/', authMiddleware, (req, res, next) => {
       res.json({ ok: true, data: results });
     });
   } else {
-    next(); // admin y técnico pasan al getCitas del controller
+    next();
   }
 }, getCitas);
 
-// 🔒 CREAR CITA — admin, técnico y usuario
+// 🔒 CREAR CITA
 router.post('/', authMiddleware, roleMiddleware('admin', 'tecnico', 'usuario'), createCita);
 
-// 🔒 ACTUALIZAR CITA — admin y técnico
-router.put('/:id', authMiddleware, roleMiddleware('admin', 'tecnico'), updateCita);
-
-// 🔒 CAMBIAR ESTADO — admin, técnico y usuario
+// ✅ CAMBIAR ESTADO — primero la ruta específica
 router.put('/:id/estado', authMiddleware, roleMiddleware('admin', 'tecnico', 'usuario'), cambiarEstado);
 
-// 🔒 ELIMINAR CITA — solo admin y técnico (usando deleteCita del controller)
+// 🔒 ACTUALIZAR CITA — después la genérica
+router.put('/:id', authMiddleware, roleMiddleware('admin', 'tecnico'), updateCita);
+
+// 🔒 ELIMINAR CITA
 router.delete('/:id', authMiddleware, roleMiddleware('admin', 'tecnico'), deleteCita);
 
 module.exports = router;
